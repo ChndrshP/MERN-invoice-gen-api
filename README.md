@@ -11,8 +11,8 @@ This guide will help you set up the backend for a MERN (MongoDB, Express, React,
 
 1. **Clone the repository:**
     ```bash
-    git clone <repository-url>
-    cd <repository-name>
+    git clone [<repository-url>](https://github.com/ChndrshP/MERN-invoice-gen-api.git)
+    cd MERN-invoice-gen-api
     ```
 
 2. **Install dependencies:**
