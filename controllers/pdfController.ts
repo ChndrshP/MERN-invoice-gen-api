@@ -115,8 +115,9 @@ export const generatePDF = async (req: Request, res: Response): Promise<void> =>
 
     // Launch browser with minimal settings
     const browser = await puppeteer.launch({
+      executablePath: '/opt/render/.cache/puppeteer/chrome',
       headless: true,
-      args: ['--no-sandbox']
+      args: ['--no-sandbox', '--disable-setuid-sandbox']
     });
 
     const page = await browser.newPage();
