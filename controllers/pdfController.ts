@@ -25,7 +25,7 @@ export const generatePDF = async (req: Request, res: Response): Promise<void> =>
   try {
     console.log('Request body received:', JSON.stringify(req.body, null, 2));
 
-    const { products, total, gst }: InvoiceData = req.body;
+    const { customer, products, total, gst }: InvoiceData = req.body;
 
     // Calculate totals
     const subtotal = products.reduce((sum: number, product: Product): number =>
@@ -169,9 +169,9 @@ export const generatePDF = async (req: Request, res: Response): Promise<void> =>
             </div>
 
             <div class="customer-details">
-                <div class="customer-name">${data.customer.name}</div>
-                <div class="customer-email">${data.customer.email}</div>
-                <div class="customer-date">Date: ${data.customer.date}</div>
+                <div class="customer-name">${customer.name}</div>
+                <div class="customer-email">${customer.email}</div>
+                <div class="customer-date">Date: ${customer.date}</div>
             </div>
 
             <div class="products">
@@ -181,12 +181,12 @@ export const generatePDF = async (req: Request, res: Response): Promise<void> =>
                     <div>Rate</div>
                     <div>Total Amount</div>
                 </div>
-                ${data.products.map(product => `
+                ${products.map(product => `
                     <div class="product-row">
                         <div>${product.name}</div>
                         <div>${product.quantity}</div>
-                        <div>${product.rate}</div>
-                        <div>USD ${(product.quantity * product.rate).toFixed(2)}</div>
+                        <div>${product.price}</div>
+                        <div>INR ${(product.quantity * product.price).toFixed(2)}</div>
                     </div>
                 `).join('')}
             </div>
@@ -207,7 +207,7 @@ export const generatePDF = async (req: Request, res: Response): Promise<void> =>
             </div>
 
             <div class="date">
-                Date: ${data.customer.date}
+                Date: ${customer.date}
             </div>
 
             <div class="footer">
