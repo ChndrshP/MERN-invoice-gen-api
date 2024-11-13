@@ -1,6 +1,5 @@
 import { Request, Response } from "express";
 import puppeteer from "puppeteer";
-import { Buffer } from 'buffer';
 
 interface Product {
     name: string;
@@ -75,12 +74,6 @@ export const generatePDF = async (req: Request, res: Response): Promise<void> =>
                 font-size: 24px;
                 margin: 0;
                 color: #333;
-            }
-            .logo {
-                height: 40px;
-            }
-            .logo img {
-                height: 100%;
             }
             .customer-details {
                 background-color: #1a1f36;
@@ -160,13 +153,7 @@ export const generatePDF = async (req: Request, res: Response): Promise<void> =>
     <body>
         <div class="invoice">
             <div class="header">
-                <h1>INVOICE GENERATOR</h1>
-                <div class="logo">
-                    <svg viewBox="0 0 24 24" width="40" height="40">
-                        <path fill="#1a1f36" d="M12 0L24 12L12 24L0 12L12 0Z"/>
-                    </svg>
-                    Levitation
-                </div>
+                <h1>Thank You for choosing us!</h1>
             </div>
 
             <div class="customer-details">
@@ -264,7 +251,7 @@ export const generatePDF = async (req: Request, res: Response): Promise<void> =>
             margin: {
                 top: '20px',
                 right: '20px',
-                bottom: '20px',
+                bottom: '5px',
                 left: '20px'
             },
             preferCSSPageSize: true,
