@@ -3,10 +3,12 @@
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "npx puppeteer install && ts-node-dev --pretty --respawn server.ts"
-  },
+ "scripts": {
+  "test": "echo \"Error: no test specified\" && exit 1",
+  "start": "npx puppeteer install && ts-node-dev --pretty --respawn server.ts",
+  "build": "tsc",
+  "serve": "node dist/server.js"
+},
   "keywords": [],
   "author": "",
   "license": "ISC",
