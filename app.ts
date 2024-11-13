@@ -8,7 +8,7 @@ dotenv.config();
 connectDB();
 
 const corsOptions = {
-    origin: "*", // Allow requests from any origin
+    origin: "*",
     methods: "GET,HEAD,PUT,PATCH,POST,DELETE",
     optionsSuccessStatus: 204,
   };
@@ -20,8 +20,3 @@ app.use(cors(corsOptions));
 app.use('/api/auth', authRoutes);
 
 export default app;
-
-
-
-
-  

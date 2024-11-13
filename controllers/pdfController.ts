@@ -3,46 +3,47 @@ import puppeteer from "puppeteer";
 import { Buffer } from 'buffer';
 
 interface Product {
-  name: string;
-  price: number;
-  quantity: number;
+    name: string;
+    price: number;
+    quantity: number;
 }
 
 interface CustomerDetails {
-  name: string;
-  email: string;
-  date: string;
+    name: string;
+    email: string;
+    date: string;
 }
 
 interface InvoiceData {
-  customer: CustomerDetails;
-  products: Product[];
-  total: number;
-  gst: number;
+    customer: CustomerDetails;
+    products: Product[];
+    total: number;
+    gst: number;
 }
 
 export const generatePDF = async (req: Request, res: Response): Promise<void> => {
-  try {
-    console.log('Request body received:', JSON.stringify(req.body, null, 2));
+    let browser = null;
+    let page = null;
 
-    const { customer, products, total, gst }: InvoiceData = req.body;
+    try {
+        console.log('Starting PDF generation...');
+        const { customer, products, total, gst }: InvoiceData = req.body;
 
-    // Calculate totals
-    const subtotal = products.reduce((sum: number, product: Product): number =>
-      sum + (product.price * product.quantity), 0);
+        const subtotal = products.reduce((sum: number, product: Product): number =>
+            sum + (product.price * product.quantity), 0);
 
-    if (Math.abs(subtotal - total) > 0.01) {
-      res.status(400).json({
-        error: "Total amount doesn't match the sum of products",
-        expected: subtotal,
-        received: total
-      });
-      return;
-    }
+        if (Math.abs(subtotal - total) > 0.01) {
+            res.status(400).json({
+                error: "Total amount doesn't match the sum of products",
+                expected: subtotal,
+                received: total
+            });
+            return;
+        }
 
-    const finalTotal = subtotal + gst;
+        const finalTotal = subtotal + gst;
 
-    const htmlContent = `
+        const htmlContent = `
     <!DOCTYPE html>
     <html lang="en">
     <head>
@@ -218,57 +219,93 @@ export const generatePDF = async (req: Request, res: Response): Promise<void> =>
     </html>
   `;
 
-    // Launch browser with minimal settings
-    const browser = await puppeteer.launch({
-      executablePath: '/opt/render/.cache/puppeteer/chrome',
-      headless: true,
-      args: ['--no-sandbox', '--disable-setuid-sandbox']
-    });
+        console.log('Launching browser...');
+        browser = await puppeteer.launch({
+            // For Windows local development
+            headless: true,
+            args: [
+                '--disable-gpu',
+                '--disable-dev-shm-usage',
+                '--disable-setuid-sandbox',
+                '--no-sandbox',
+            ],
+            pipe: true, // Use pipe instead of WebSocket
+            timeout: 30000,
+        });
 
-    const page = await browser.newPage();
+        console.log('Creating new page...');
+        page = await browser.newPage();
 
-    // Basic viewport settings
-    await page.setViewport({
-      width: 800,
-      height: 600
-    });
+        // Set modest viewport size
+        await page.setViewport({
+            width: 800,
+            height: 600,
+            deviceScaleFactor: 1,
+        });
 
-    // Set content with minimal wait condition
-    await page.setContent(htmlContent, {
-      waitUntil: 'networkidle0'
-    });
+        // Handle page errors
+        page.on('error', err => {
+            console.error('Page error:', err);
+        });
 
-    // Generate PDF with minimal settings
-    const pdfBuffer = await page.pdf({
-      format: 'A4',
-      printBackground: true
-    });
+        page.on('pageerror', err => {
+            console.error('Page error:', err);
+        });
 
-    // Close the browser before sending response
-    await browser.close();
+        console.log('Setting page content...');
+        await page.setContent(htmlContent, {
+            waitUntil: ['load', 'domcontentloaded'],
+            timeout: 30000,
+        });
 
-    // Stream the response instead of sending buffer directly
-    res.writeHead(200, {
-      'Content-Type': 'application/pdf',
-      'Content-Disposition': 'attachment; filename=invoice.pdf',
-      'Content-Length': pdfBuffer.length
-    });
+        console.log('Generating PDF...');
+        const pdfBuffer = await page.pdf({
+            format: 'A4',
+            printBackground: true,
+            margin: {
+                top: '20px',
+                right: '20px',
+                bottom: '20px',
+                left: '20px'
+            },
+            preferCSSPageSize: true,
+        });
 
-    // Create a readable stream from the buffer and pipe it to the response
-    const stream = require('stream');
-    const bufferStream = new stream.PassThrough();
-    bufferStream.end(pdfBuffer);
-    bufferStream.pipe(res);
+        console.log('PDF generated successfully');
 
-  } catch (error) {
-    console.error('PDF Generation Error:', error);
+        // Close page and browser before sending response
+        if (page) {
+            await page.close();
+        }
+        if (browser) {
+            await browser.close();
+        }
 
-    // Make sure we don't send headers if we've already started the response
-    if (!res.headersSent) {
-      res.status(500).json({
-        error: "PDF generation failed",
-        details: error instanceof Error ? error.message : 'Unknown error'
-      });
+        console.log('Sending response...');
+        res.writeHead(200, {
+            'Content-Type': 'application/pdf',
+            'Content-Disposition': 'attachment; filename=invoice.pdf',
+            'Content-Length': pdfBuffer.length
+        });
+
+        res.end(pdfBuffer);
+
+    } catch (error) {
+        console.error('PDF Generation Error:', error);
+
+        // Cleanup in case of error
+        try {
+            if (page) await page.close();
+            if (browser) await browser.close();
+        } catch (closeError) {
+            console.error('Error during cleanup:', closeError);
+        }
+
+        if (!res.headersSent) {
+            res.status(500).json({
+                error: "PDF generation failed",
+                details: error instanceof Error ? error.message : 'Unknown error'
+            });
+        }
     }
-  }
 };
