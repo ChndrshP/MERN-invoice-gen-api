@@ -195,15 +195,15 @@ export const generatePDF = async (req: Request, res: Response): Promise<void> =>
             <div class="amount-section">
                 <div class="amount-row">
                     <span>Total Charges</span>
-                    <span>$${subtotal.toFixed(2)}</span>
+                    <span>₹${subtotal.toFixed(2)}</span>
                 </div>
                 <div class="amount-row">
                     <span>GST (18%)</span>
-                    <span>$${gst.toFixed(2)}</span>
+                    <span>₹${gst.toFixed(2)}</span>
                 </div>
                 <div class="amount-row total-amount">
                     <span>Total Amount</span>
-                    <span>₹ ${finalTotal.toFixed(2)}</span>
+                    <span>₹${finalTotal.toFixed(2)}</span>
                 </div>
             </div>
 
@@ -221,7 +221,6 @@ export const generatePDF = async (req: Request, res: Response): Promise<void> =>
 
         console.log('Launching browser...');
         browser = await puppeteer.launch({
-            // For Windows local development
             headless: true,
             args: [
                 '--disable-gpu',
@@ -229,7 +228,7 @@ export const generatePDF = async (req: Request, res: Response): Promise<void> =>
                 '--disable-setuid-sandbox',
                 '--no-sandbox',
             ],
-            pipe: true, // Use pipe instead of WebSocket
+            pipe: true,
             timeout: 30000,
         });
 
