@@ -3,7 +3,6 @@
     "target": "es2016",
     "module": "commonjs",
     "typeRoots": ["./node_modules/@types"],
-    "types": ["dotenv", "puppeteer"],
     "esModuleInterop": true,
     "forceConsistentCasingInFileNames": true,
     "strict": true,
